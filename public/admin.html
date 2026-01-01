@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - StreamHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
+        <h1 class="text-2xl font-bold mb-6 text-center text-red-500">⚙️ Ruang Admin</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Nama Website Saat Ini</label>
+                <input type="text" id="siteNameInput" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-red-500 focus:outline-none" placeholder="Loading...">
+            </div>
+
+            <div>
+                <label class="block text-sm text-gray-400 mb-1">Password Admin</label>
+                <input type="password" id="adminPass" class="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:border-red-500 focus:outline-none" placeholder="Masukkan password (default: admin123)">
+            </div>
+
+            <button onclick="saveSettings()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded transition transform active:scale-95">
+                Simpan Perubahan
+            </button>
+        </div>
+
+        <p id="statusMsg" class="text-center text-sm mt-4 text-gray-500"></p>
+        <a href="/" class="block text-center text-xs text-gray-600 mt-6 hover:text-white">← Kembali ke Halaman Utama</a>
+    </div>
+
+    <script>
+        // 1. Saat halaman dibuka, ambil data dari Database
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/admin/config');
+                const data = await res.json();
+                document.getElementById('siteNameInput').value = data.siteName;
+            } catch (e) {
+                console.error("Gagal load setting");
+            }
+        }
+
+        // 2. Fungsi Simpan ke Database
+        async function saveSettings() {
+            const newName = document.getElementById('siteNameInput').value;
+            const password = document.getElementById('adminPass').value;
+            const msg = document.getElementById('statusMsg');
+
+            msg.innerText = "Menyimpan...";
+            
+            try {
+                const res = await fetch('/api/admin/update-name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newName, password })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    msg.innerText = "✅ " + result.message;
+                    msg.className = "text-center text-sm mt-4 text-green-500";
+                } else {
+                    msg.innerText = "❌ " + result.message;
+                    msg.className = "text-center text-sm mt-4 text-red-500";
+                }
+            } catch (e) {
+                msg.innerText = "❌ Gagal menghubungi server.";
+            }
+        }
+
+        loadSettings();
+    </script>
+</body>
+</html>
